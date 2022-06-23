@@ -1,17 +1,20 @@
 #include "Arduino.h"
 #include "SerialCommunication.h"
+#include "ShiftRegister.h"
 
 class PotentiometerArray {
 
     public:
 
-        void setMainConnection(int universalPin) {
+        void setMainConnection(int universalPin, ShiftRegister shiftRegister) {
             pinMode(universalPin, INPUT);
             this->universalPin = universalPin;
+            this->shiftRegister = shiftRegister;
         }
 
         void connectPotenitometer(int vccPin, String serialHeader) {
-            pinMode(vccPin, OUTPUT);
+            shiftRegister.write(vccPin, LOW);
+            
             int count = getCount();
 
             outPins = new int[count + 1];
@@ -28,20 +31,21 @@ class PotentiometerArray {
             for(int i = 0; i < getCount(); i++) {
                 int outPin = outPins[(i + 1) % getCount()];
 
-                digitalWrite(outPin, HIGH);
+                shiftRegister.write(outPin, HIGH);
                 int value = analogRead(outPin);
-                
+
                 if(abs(lastValues[i] - value) > 3) {
                     SerialCommunication::sendCommand(headers[i], value);
                     lastValues[i] = value;
                 }
 
-                digitalWrite(outPins[i], LOW);
+                 shiftRegister.write(outPins[i], HIGH);
             }
         }
 
     private:
 
+        ShiftRegister shiftRegister;
         String* headers;
         int* outPins;
         int* lastValues;

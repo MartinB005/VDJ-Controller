@@ -1,6 +1,8 @@
 #include "Arduino.h"
 #include <SerialCommunication.h>
 
+#define OUTPUTS_COUNT 8
+
 class ShiftRegister {
 
     public:
@@ -20,7 +22,7 @@ class ShiftRegister {
         }
 
         void write(int pin, int value) {
-            currentNumber[pin] = value == HIGH ? '1' : '0';
+            currentNumber[OUTPUTS_COUNT - pin] = value == HIGH ? '1' : '0';
 
             digitalWrite(latchPin, LOW);
  
@@ -33,7 +35,7 @@ class ShiftRegister {
         int latchPin;
         int clockPin;
         int dataPin;
-        char* currentNumber;
+        char* currentNumber = "00000000";
         String header;
 
         long binary_to_int(char *binary_string) {

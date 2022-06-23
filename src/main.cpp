@@ -3,6 +3,7 @@
 #include <Encoder.h>
 #include <Button.h>
 #include <Potentiometer.h>
+#include <PotentiometerArray.h>
 #include <SerialCommunication.h>
 #include <ShiftRegister.h>
 
@@ -28,6 +29,8 @@ Potentiometer crossfader;
 
 Potentiometer eqEffectLeft;
 Potentiometer eqEffectRight;
+
+PotentiometerArray potentiometers;
 
 ShiftRegister shiftRegister;
 
@@ -65,8 +68,15 @@ void setup() {
   eqEffectRight.connect(A6);
   eqEffectRight.setSerialHeader("eq1_right");
 
-
   shiftRegister.connect(DATA_PIN, CLK_PIN, LATCH_PIN);
+
+
+  potentiometers.setMainConnection(A5, shiftRegister);
+
+  potentiometers.connectPotenitometer(0, "eq2_left");
+  potentiometers.connectPotenitometer(0, "eq2_left");
+  potentiometers.connectPotenitometer(0, "eq2_left");
+  potentiometers.connectPotenitometer(0, "eq2_left");
 
 }
 
@@ -81,7 +91,7 @@ void loop() {
   eqEffectLeft.check();
   eqEffectRight.check();
 
-  shiftRegister.write(1, HIGH);
+  potentiometers.check();
 
 /*
   char* array[] = {"10111111",  "11011111", "11101111",  "11110111"};
