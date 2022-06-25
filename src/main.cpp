@@ -46,16 +46,16 @@ void setup() {
   playPause.connect(9);
   playPause.setAction("play_pause left", 1);
 
-  volumeLeft.connect(A0);
-  volumeLeft.setSerialHeader("lvl_left");
+  volumeLeft.connect(A1);
+  volumeLeft.setSerialHeader("lvl_L");
   volumeLeft.isLogarithmic = true;
   
-  volumeRight.connect(A1);
-  volumeRight.setSerialHeader("lvl_right");
+  volumeRight.connect(A2);
+  volumeRight.setSerialHeader("lvl_R");
   volumeRight.isLogarithmic = true;
 
-  crossfader.connect(A2);
-  crossfader.setSerialHeader("crossfader");
+  crossfader.connect(A0);
+  crossfader.setSerialHeader("cfdr");
   crossfader.isSwapped = true;
   crossfader.isLogarithmic = true;
   crossfader.reverseLogarithmic = true;
@@ -63,21 +63,20 @@ void setup() {
 
   eqEffectLeft.connect(A7);
   eqEffectLeft.isSwapped = true;
-  eqEffectLeft.setSerialHeader("eq1_left");
+  eqEffectLeft.setSerialHeader("eq1_L");
   
   eqEffectRight.connect(A6);
-  eqEffectRight.setSerialHeader("eq1_right");
+  eqEffectRight.setSerialHeader("eq1_R");
 
   shiftRegister.connect(DATA_PIN, CLK_PIN, LATCH_PIN);
 
 
   potentiometers.setMainConnection(A5, shiftRegister);
 
-  potentiometers.connectPotenitometer(0, "eq2_left");
-  potentiometers.connectPotenitometer(0, "eq2_left");
-  potentiometers.connectPotenitometer(0, "eq2_left");
-  potentiometers.connectPotenitometer(0, "eq2_left");
-
+  potentiometers.connectPotenitometer(4, "eq2_L");
+  potentiometers.connectPotenitometer(5, "eq2_R");
+  potentiometers.connectPotenitometer(6, "eq3_L");
+  potentiometers.connectPotenitometer(7, "eq3_R");
 }
 
 long binary_to_int(char *binary_string);
@@ -90,6 +89,8 @@ void loop() {
 
   eqEffectLeft.check();
   eqEffectRight.check();
+
+
 
   potentiometers.check();
 

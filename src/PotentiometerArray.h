@@ -39,6 +39,8 @@ class PotentiometerArray {
                     lastValues[i] = value;
                 }
 
+                delay(1);
+
                  shiftRegister.write(outPins[i], HIGH);
             }
         }

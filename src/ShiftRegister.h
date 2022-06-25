@@ -3,6 +3,9 @@
 
 #define OUTPUTS_COUNT 8
 
+#ifndef SHIFTREGISTER_H
+#define SHIFTREGISTER_H
+
 class ShiftRegister {
 
     public:
@@ -22,10 +25,10 @@ class ShiftRegister {
         }
 
         void write(int pin, int value) {
-            currentNumber[OUTPUTS_COUNT - pin] = value == HIGH ? '1' : '0';
+            currentNumber[OUTPUTS_COUNT - pin - 1] = value == HIGH ? '1' : '0';
 
             digitalWrite(latchPin, LOW);
- 
+            
             shiftOut(dataPin, clockPin, MSBFIRST, binary_to_int(currentNumber));
  
             digitalWrite(latchPin, HIGH);
@@ -50,3 +53,5 @@ class ShiftRegister {
         }
 
 };
+
+#endif //SHIFTREGISTER_H
