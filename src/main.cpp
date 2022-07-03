@@ -6,22 +6,31 @@
 #include <PotentiometerArray.h>
 #include <SerialCommunication.h>
 #include <ShiftRegister.h>
+#include <ButtonMatrix.h>
 
+#define LEFT_VINYL_DT 6
+#define LEFT_VINYL_CLK 7
 
-#define BROWSER_ENCODER_CLK 11
-#define BROWSER_ENCODER_DT 12
+#define RIGHT_VINYL_DT 4
+#define RIGHT_VINYL_CLK 5
 
-#define DATA_PIN 11
+#define DATA_PIN 13
 #define CLK_PIN 12
-#define LATCH_PIN 13
+#define LATCH_PIN 11
 
 #define FOWARD 1
 #define BACKWARD -1
 
-int volumeBuffer = 0;
+void checkEncoders();
+void checkAll();
+void connectPlates();
+void connectSliders();
+void connectSinglePotentiometers();
+void connectPotentiometerArray();
+void initButtons();
 
-Encoder browserEncoder;
-Button playPause;
+Encoder leftVinyl;
+Encoder rightVinyl;
 
 Potentiometer volumeLeft;
 Potentiometer volumeRight;
@@ -30,21 +39,57 @@ Potentiometer crossfader;
 Potentiometer eqEffectLeft;
 Potentiometer eqEffectRight;
 
+Potentiometer leftEffect;
+Potentiometer rightEffect;
+
 PotentiometerArray potentiometers;
 
 ShiftRegister shiftRegister;
 
+ButtonMatrix buttonMatrix;
+
+
 void setup() {
+
   Serial.begin(115200);
-  Serial.println("starting...");
 
-  browserEncoder.connect(BROWSER_ENCODER_CLK, BROWSER_ENCODER_DT);
+  
+  shiftRegister.connect(DATA_PIN, CLK_PIN, LATCH_PIN);
 
-  browserEncoder.setActionClockwise("jogwheel left", FOWARD);
-  browserEncoder.setActionCounterClockwise("jogwheel left", BACKWARD);
+  connectPlates();
+  connectSliders();
+  connectSinglePotentiometers();
+  connectPotentiometerArray();
+  initButtons();
 
-  playPause.connect(9);
-  playPause.setAction("play_pause left", 1);
+  potentiometers.setIdleFunction(checkEncoders);
+  buttonMatrix.setIdleFunction(checkEncoders);
+
+}
+
+void loop() {
+  
+  checkAll();
+  checkEncoders();
+
+  delay(1);
+}
+
+void connectPlates() {
+
+  leftVinyl.connect(LEFT_VINYL_CLK, LEFT_VINYL_DT);
+
+  leftVinyl.setActionClockwise("jogwheel left", FOWARD);
+  leftVinyl.setActionCounterClockwise("jogwheel left", BACKWARD);
+
+  rightVinyl.connect(RIGHT_VINYL_CLK, RIGHT_VINYL_DT);
+
+  rightVinyl.setActionClockwise("jogwheel right", FOWARD);
+  rightVinyl.setActionCounterClockwise("jogwheel right", BACKWARD);
+
+}
+
+void connectSliders() {
 
   volumeLeft.connect(A1);
   volumeLeft.setSerialHeader("lvl_L");
@@ -60,6 +105,9 @@ void setup() {
   crossfader.isLogarithmic = true;
   crossfader.reverseLogarithmic = true;
 
+}
+
+void connectSinglePotentiometers() {
 
   eqEffectLeft.connect(A7);
   eqEffectLeft.isSwapped = true;
@@ -68,20 +116,53 @@ void setup() {
   eqEffectRight.connect(A6);
   eqEffectRight.setSerialHeader("eq1_R");
 
-  shiftRegister.connect(DATA_PIN, CLK_PIN, LATCH_PIN);
+  leftEffect.connect(A4);
+  leftEffect.setSerialHeader("eff_slider_L");
 
+  rightEffect.connect(A3);
+  rightEffect.isSwapped = true;
+  rightEffect.setSerialHeader("eff_slider_R");
 
-  potentiometers.setMainConnection(A5, shiftRegister);
-
-  potentiometers.connectPotenitometer(4, "eq2_L");
-  potentiometers.connectPotenitometer(5, "eq2_R");
-  potentiometers.connectPotenitometer(6, "eq3_L");
-  potentiometers.connectPotenitometer(7, "eq3_R");
 }
 
-long binary_to_int(char *binary_string);
+void connectPotentiometerArray() {
+  
+  potentiometers.setMainConnection(A5, shiftRegister);
 
-void loop() {
+  potentiometers.connectPotenitometer(4, "eq2_L", true);
+  potentiometers.connectPotenitometer(5, "eq2_R", false);
+  potentiometers.connectPotenitometer(6, "eq3_L", true);
+  potentiometers.connectPotenitometer(7, "eq3_R", false);
+  
+}
+
+void initButtons() {
+  int rowPins[] = {2, 3, 8, 9};
+  int columnPins[] = {1, 3, 0, 2};
+
+  buttonMatrix.connect(shiftRegister, columnPins, rowPins);
+  buttonMatrix.setButtonHeader(0, 0, "L_PAD 1");
+  buttonMatrix.setButtonHeader(1, 0, "L_PAD 2");
+  buttonMatrix.setButtonHeader(2, 0, "L_PAD 3");
+  buttonMatrix.setButtonHeader(3, 0, "L_PAD 4");
+
+  buttonMatrix.setButtonHeader(0, 1, "L_SYNC");
+  buttonMatrix.setButtonHeader(1, 1, "L_CUE");
+  buttonMatrix.setButtonHeader(2, 1, "L_EFFECT");
+  buttonMatrix.setButtonHeader(3, 1, "L_PLAY");
+
+  buttonMatrix.setButtonHeader(0, 2, "R_PAD 1");
+  buttonMatrix.setButtonHeader(1, 2, "R_PAD 2");
+  buttonMatrix.setButtonHeader(2, 2, "R_PAD 3");
+  buttonMatrix.setButtonHeader(3, 2, "R_PAD 4");
+
+  buttonMatrix.setButtonHeader(0, 3, "R_EFFECT");
+  buttonMatrix.setButtonHeader(1, 3, "R_SYNC");
+  buttonMatrix.setButtonHeader(2, 3, "R_CUE");
+  buttonMatrix.setButtonHeader(3, 3, "R_PLAY");
+}
+
+void checkAll() {
 
   volumeLeft.check();
   volumeRight.check();
@@ -90,40 +171,18 @@ void loop() {
   eqEffectLeft.check();
   eqEffectRight.check();
 
-
-
+  leftEffect.check();
+  rightEffect.check();
   potentiometers.check();
+  buttonMatrix.check();
 
-/*
-  char* array[] = {"10111111",  "11011111", "11101111",  "11110111"};
-  //char* array[] = {"11111111", "00000000"};
-  for (int i = 0; i < sizeof(array) / sizeof(array[0]); i++) {
- 
-    // ST_CP LOW to keep LEDs from changing while reading serial data
-    digitalWrite(latchPin, LOW);
- 
-    // Shift out the bits
-    shiftOut(dataPin, clockPin, MSBFIRST, binary_to_int(array[i]));
- 
-    // ST_CP HIGH change LEDs
-    digitalWrite(latchPin, HIGH);
+}
 
-    if(digitalRead(2) == LOW) {
-      Serial.print("pressed - row: ");
-      Serial.print(i + 1);
-      Serial.println(", column: 1");
-    }
+void checkEncoders() {
 
-    if(digitalRead(3) == LOW) {
-      Serial.print("pressed - row: ");
-      Serial.print(i + 1);
-      Serial.println(", column: 2");
-    }
- 
-    delay(10);
-  }*/
+  leftVinyl.check();
+  rightVinyl.check();
 
-  delay(1);
 }
 
 

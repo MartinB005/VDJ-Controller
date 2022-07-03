@@ -32,6 +32,20 @@ class ShiftRegister {
             shiftOut(dataPin, clockPin, MSBFIRST, binary_to_int(currentNumber));
  
             digitalWrite(latchPin, HIGH);
+
+
+        }
+
+        void wait() {
+            busy = true;
+        }
+
+        boolean isBusy() {
+            return busy;
+        }
+
+        void release() {
+            busy = false;
         }
 
     private:
@@ -39,6 +53,7 @@ class ShiftRegister {
         int clockPin;
         int dataPin;
         char* currentNumber = "00000000";
+        boolean busy = false;
         String header;
 
         long binary_to_int(char *binary_string) {

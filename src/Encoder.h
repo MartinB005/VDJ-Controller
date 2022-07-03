@@ -26,7 +26,7 @@ class Encoder {
         void check() {
             int clockValue = digitalRead(clockPin);
             if (clockValue != clockLastState) {
-                if (digitalRead(dataPin) != clockValue) {
+                if (digitalRead(dataPin) == 1) {
                     counter++;
                     if(counter % 2 == 0) {
                         SerialCommunication::sendCommand(counterClockwiseHeader, counterClockwiseValue);
@@ -47,7 +47,7 @@ class Encoder {
         int dataPin;
         int dataLastState;
         int clockLastState;
-        int counter = 0;
+        int counter = 1;
 
         int clockwiseValue;
         int counterClockwiseValue;

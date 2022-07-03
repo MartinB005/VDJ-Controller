@@ -2,6 +2,11 @@
 #include "SerialCommunication.h"
 #include "ShiftRegister.h"
 
+#define COUNT 4
+#define MAX_VALUE 1023
+
+typedef void(*idleFunc)(void);
+
 class PotentiometerArray {
 
     public:
@@ -12,49 +17,73 @@ class PotentiometerArray {
             this->shiftRegister = shiftRegister;
         }
 
-        void connectPotenitometer(int vccPin, String serialHeader) {
+        void connectPotenitometer(int vccPin, String serialHeader, boolean swap) {
             shiftRegister.write(vccPin, LOW);
-            
-            int count = getCount();
 
-            outPins = new int[count + 1];
             outPins[count] = vccPin;
+            swaped[count] = swap;
 
-            lastValues = new int[count + 1];
             lastValues[count] = 0;
 
-            headers = new String[count + 1];
             headers[count] = serialHeader;
+            count++;
+        }
+
+        void setIdleFunction(idleFunc func) {
+            this->func = func;
         }
 
         void check() {
-            for(int i = 0; i < getCount(); i++) {
-                int outPin = outPins[(i + 1) % getCount()];
+
+            for(int i = 0; i < COUNT; i++) {
+                int outPin = outPins[i];
+                outPin = outPins[i];
 
                 shiftRegister.write(outPin, HIGH);
-                int value = analogRead(outPin);
-
-                if(abs(lastValues[i] - value) > 3) {
-                    SerialCommunication::sendCommand(headers[i], value);
-                    lastValues[i] = value;
+                
+                int millisValue = millis();
+                while(millis() - millisValue < 20) {
+                    func();
                 }
 
-                delay(1);
-
-                 shiftRegister.write(outPins[i], HIGH);
+                readData(outPin, i);
             }
         }
 
     private:
 
         ShiftRegister shiftRegister;
-        String* headers;
-        int* outPins;
-        int* lastValues;
+        String headers[COUNT];
+        int outPins[COUNT];
+        int lastValues[COUNT];
         int universalPin;
+        int maxCount;
+        int count;
+        long lastMillisValue = __LONG_MAX__;
 
-        int getCount() {
-            return sizeof(outPins) / sizeof(outPins[0]);
+        boolean next = true;
+        boolean swaped[COUNT];
+        idleFunc func;
+
+        void readData(int outPin, int which) {
+
+                int value = analogRead(universalPin);
+
+                if(swaped[which]) {
+                    value = MAX_VALUE - value;
+                }
+
+                if(abs(lastValues[which] - value) > 5) {
+                    SerialCommunication::sendCommand(headers[which], value);
+                    lastValues[which] = value;
+                }
+
+                shiftRegister.write(outPin, LOW);
+
+                which = which < 3 ? which + 1 : 0;
+                next = true;
+
+                shiftRegister.release();
         }
         
 };
