@@ -35,10 +35,10 @@ Encoder rightVinyl;
 Potentiometer volumeLeft;
 Potentiometer volumeRight;
 Potentiometer crossfader;
-
+/*
 Potentiometer eqEffectLeft;
 Potentiometer eqEffectRight;
-
+*/
 Potentiometer leftEffect;
 Potentiometer rightEffect;
 
@@ -59,7 +59,7 @@ void setup() {
   connectPlates();
   connectSliders();
   connectSinglePotentiometers();
-  connectPotentiometerArray();
+  //connectPotentiometerArray();
   initButtons();
 
   potentiometers.setIdleFunction(checkEncoders);
@@ -108,14 +108,14 @@ void connectSliders() {
 }
 
 void connectSinglePotentiometers() {
-
+/*
   eqEffectLeft.connect(A7);
   eqEffectLeft.isSwapped = true;
   eqEffectLeft.setSerialHeader("eq1_L");
   
   eqEffectRight.connect(A6);
   eqEffectRight.setSerialHeader("eq1_R");
-
+*/
   leftEffect.connect(A4);
   leftEffect.setSerialHeader("eff_slider_L");
 
@@ -167,13 +167,13 @@ void checkAll() {
   volumeLeft.check();
   volumeRight.check();
   crossfader.check();
-
+/*
   eqEffectLeft.check();
-  eqEffectRight.check();
+  eqEffectRight.check();*/
 
   leftEffect.check();
   rightEffect.check();
-  potentiometers.check();
+ // potentiometers.check();
   buttonMatrix.check();
 
 }
