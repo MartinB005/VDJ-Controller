@@ -20,6 +20,19 @@ class Potentiometer {
             this->header = header;
         }
 
+        void setFirstChangeHeader(String header) {
+            this->firstHeader = header;
+        }
+
+        void watchCondition(bool *addr, String redudantHeader) {
+            this->condition = addr;
+            this->redudantHeader = redudantHeader;
+        }
+
+        void blockOnRelease(bool* addr) {
+            block = addr;
+        }
+
         void check() {
             int value = !isSwapped && !reverseLogarithmic ? analogRead(input_pin) : MAX_VALUE - analogRead(input_pin);
             if(abs(lastState - value) > 3) {
@@ -28,8 +41,16 @@ class Potentiometer {
                 if(reverseLogarithmic) {
                     normalized = pow(normalized, 3) / MAX_VALUE / MAX_VALUE;
                 }
+
+                String resultHeader = condition != NULL && (*condition) ? redudantHeader : header;
                 
-                SerialCommunication::sendCommand(header, normalized);
+                SerialCommunication::sendCommand(resultHeader, normalized);
+
+                if(!*block) {
+                    SerialCommunication::sendCommand(firstHeader, 1);
+                }
+
+                *block = true;
                 lastState = value;
             }
         }
@@ -38,4 +59,8 @@ class Potentiometer {
         int input_pin;
         int lastState;
         String header;
+        String redudantHeader;
+        String firstHeader;
+        bool *condition = NULL;
+        bool *block;
 };

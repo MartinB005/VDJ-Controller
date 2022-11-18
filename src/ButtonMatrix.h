@@ -5,6 +5,8 @@
 #define COLUMNS 4
 #define ROWS 4
 
+#define SEND_ON_KEYUP 1
+#define SEND_ON_KEYDOWN 0
 
 typedef void(*idleFunc)(void);
 
@@ -28,8 +30,9 @@ class ButtonMatrix {
             }
         }
 
-        void setButtonHeader(int column, int row, String header) {
+        void setButtonHeader(int column, int row, String header, boolean whenSend) {
             headers[column][row] = header;
+            detectKeyUp[column][row] = whenSend;
         }
 
         void setIdleFunction(idleFunc func) {
@@ -51,16 +54,33 @@ class ButtonMatrix {
             }
         }
 
+        bool* getBlockControl() {
+            return &blockButtons;
+        }
+
+        bool* getButtonAddress(String header) {
+            for(int i = 0; i < COLUMNS; i++) {
+                
+                for(int j = 0; j < ROWS; j++) {
+                    if(header.equals(headers[i][j]))
+                        return &pressed[i][j];
+                }
+            }
+
+            return NULL;
+        }
+
     private:
 
         ShiftRegister shiftRegister;
         String headers[COLUMNS][ROWS];
+        boolean pressed[COLUMNS][ROWS];
+        boolean detectKeyUp[COLUMNS][ROWS];
         int columnPins[COLUMNS];
         int rowPins[ROWS];
-
-        int pressed[COLUMNS][ROWS];
         long lastMillisValue = __LONG_MAX__;
         boolean next = true;
+        boolean blockButtons;
         idleFunc func;
 
         
@@ -71,11 +91,17 @@ class ButtonMatrix {
                 if(digitalRead(rowPins[row]) == LOW) {
 
                     if(!pressed[column][row]) {
-                        SerialCommunication::sendCommand(headers[column][row], 1);
+                        if(!detectKeyUp[column][row]) SerialCommunication::sendCommand(headers[column][row], 1);
+                        blockButtons = false;
                         pressed[column][row] = true;
                     }
 
                 } else {
+                    if(pressed[column][row] && detectKeyUp[column][row]) {
+                        if(!blockButtons) SerialCommunication::sendCommand(headers[column][row], 1);
+                        else SerialCommunication::sendESC();
+                        blockButtons = false;
+                    }
                     pressed[column][row] = false;
                 }
             }

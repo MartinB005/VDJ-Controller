@@ -15,6 +15,15 @@ class SerialCommunication {
             serializeJson(doc, Serial);
             Serial.print("\n");
         }
+
+        static void sendESC() {
+            StaticJsonDocument<200> doc;
+            doc["header"] = "ESC";
+            doc["value"] = 1;
+            String jsonString;
+            serializeJson(doc, Serial);
+            Serial.print("\n");
+        }
 };
 
 #endif // SERIALCOMMUNICATION_H
