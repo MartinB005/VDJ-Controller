@@ -5,111 +5,125 @@
 #define COLUMNS 4
 #define ROWS 4
 
-#define SEND_ON_KEYUP 1
-#define SEND_ON_KEYDOWN 0
+#define CUE_LEFT 0x15
+#define PLAY_LEFT 0x16
+#define SYNC_LEFT 0x17
 
-typedef void(*idleFunc)(void);
+#define CUE_RIGHT 0x18
+#define PLAY_RIGHT 0x19
+#define SYNC_RIGHT 0x1A
 
-class ButtonMatrix {
+#define EFFECT_LEFT 0x1B
+#define EFFECT_RIGHT 0x1C
 
-    public:
+#define PAD_1_LEFT 0x1D
+#define PAD_2_LEFT 0x1E
+#define PAD_3_LEFT 0x1F
+#define PAD_4_LEFT 0x20
 
-        void connect(ShiftRegister shiftRegister, int columnPins[], int rowPins[]) {
-            
-            this->shiftRegister = shiftRegister;
+#define PAD_1_RIGHT 0x21
+#define PAD_2_RIGHT 0x22
+#define PAD_3_RIGHT 0x23
+#define PAD_4_RIGHT 0x24
 
-            for(int i = 0; i < ROWS; i++) {
-                this->rowPins[i] = rowPins[i];
-                pinMode(rowPins[i], INPUT_PULLUP);
-                Serial.println(rowPins[i]);
+const int controls[COLUMNS][ROWS] = {{PAD_1_LEFT, SYNC_LEFT, PAD_1_RIGHT, EFFECT_RIGHT},
+                                     {PAD_2_LEFT, CUE_LEFT, PAD_2_RIGHT, SYNC_RIGHT},
+                                     {PAD_3_LEFT, EFFECT_LEFT, PAD_3_RIGHT, CUE_RIGHT},
+                                     {PAD_4_LEFT, PLAY_LEFT, PAD_4_RIGHT, PLAY_RIGHT}};
+
+typedef void (*idleFunc)(void);
+
+class ButtonMatrix
+{
+
+public:
+    void init(ShiftRegister shiftRegister, int columnPins[], int rowPins[])
+    {
+
+        this->shiftRegister = shiftRegister;
+
+        for (int i = 0; i < ROWS; i++)
+        {
+            this->rowPins[i] = rowPins[i];
+            pinMode(rowPins[i], INPUT_PULLUP);
+            Serial.println(rowPins[i]);
+        }
+
+        for (int j = 0; j < COLUMNS; j++)
+        {
+            this->columnPins[j] = columnPins[j];
+            shiftRegister.write(columnPins[j], HIGH);
+        }
+    }
+
+    void setIdleFunction(idleFunc func)
+    {
+        this->func = func;
+    }
+
+    void check()
+    {
+
+        for (int column = 0; column < COLUMNS; column++)
+        {
+
+            shiftRegister.write(columnPins[column], LOW);
+
+            int millisValue = millis();
+            while (millis() - millisValue < 5)
+            {
+                func();
             }
 
-            for(int j = 0; j < COLUMNS; j++) {
-                this->columnPins[j] = columnPins[j];
-                shiftRegister.write(columnPins[j], HIGH);
-            }
+            readData(column);
         }
+    }
 
-        void setButtonHeader(int column, int row, String header, boolean whenSend) {
-            headers[column][row] = header;
-            detectKeyUp[column][row] = whenSend;
-        }
+    bool *getBlockControl()
+    {
+        return &blockButtons;
+    }
 
-        void setIdleFunction(idleFunc func) {
-            this->func = func;
-        }
+private:
+    ShiftRegister shiftRegister;
+    boolean pressed[COLUMNS][ROWS];
+    int columnPins[COLUMNS];
+    int rowPins[ROWS];
+    long lastMillisValue = __LONG_MAX__;
+    boolean next = true;
+    boolean blockButtons;
+    idleFunc func;
 
-        void check() {
+    void readData(int column)
+    {
 
-            for(int column = 0; column < COLUMNS; column++) {
+        for (int row = 0; row < ROWS; row++)
+        {
 
-                shiftRegister.write(columnPins[column], LOW);
+            if (digitalRead(rowPins[row]) == LOW)
+            {
 
-                int millisValue = millis();
-                while(millis() - millisValue < 5) {
-                    func();
+                if (!pressed[column][row])
+                {
+                    midi_note_on(1, controls[column][row], 127);
+                    blockButtons = false;
+                    pressed[column][row] = true;
                 }
-
-                readData(column);
             }
-        }
-
-        bool* getBlockControl() {
-            return &blockButtons;
-        }
-
-        bool* getButtonAddress(String header) {
-            for(int i = 0; i < COLUMNS; i++) {
-                
-                for(int j = 0; j < ROWS; j++) {
-                    if(header.equals(headers[i][j]))
-                        return &pressed[i][j];
+            else
+            {
+                if (pressed[column][row])
+                {
+                    midi_note_on(1, controls[column][row], 0);
+                    blockButtons = false;
                 }
+                pressed[column][row] = false;
             }
-
-            return NULL;
         }
 
-    private:
+        shiftRegister.write(columnPins[column], HIGH);
 
-        ShiftRegister shiftRegister;
-        String headers[COLUMNS][ROWS];
-        boolean pressed[COLUMNS][ROWS];
-        boolean detectKeyUp[COLUMNS][ROWS];
-        int columnPins[COLUMNS];
-        int rowPins[ROWS];
-        long lastMillisValue = __LONG_MAX__;
-        boolean next = true;
-        boolean blockButtons;
-        idleFunc func;
-
-        
-        void readData(int column) {
-
-            for(int row = 0; row < ROWS; row++) {
-
-                if(digitalRead(rowPins[row]) == LOW) {
-
-                    if(!pressed[column][row]) {
-                        if(!detectKeyUp[column][row]) SerialCommunication::sendCommand(headers[column][row], 1);
-                        blockButtons = false;
-                        pressed[column][row] = true;
-                    }
-
-                } else {
-                    if(pressed[column][row] && detectKeyUp[column][row]) {
-                        if(!blockButtons) SerialCommunication::sendCommand(headers[column][row], 1);
-                        else SerialCommunication::sendESC();
-                        blockButtons = false;
-                    }
-                    pressed[column][row] = false;
-                }
-            }
-
-            shiftRegister.write(columnPins[column], HIGH);
-
-            column = column < COUNT - 1 ? column + 1 : 0;
-            next = true;
-
-        }
+        column = column < COUNT - 1 ? column + 1 : 0;
+        next = true;
+    }
 };

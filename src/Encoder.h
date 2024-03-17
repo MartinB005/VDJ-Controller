@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <SerialCommunication.h>
 
+#define VELOCITY_FORWARD 0x72
+#define VELOCITY_BACKWARD 0x12
+
 class Encoder {
 
     public:
@@ -13,14 +16,12 @@ class Encoder {
             clockLastState = digitalRead(clkPin);
         }
 
-        void setActionClockwise(String header, int value) {
-            clockwiseValue = value;
-            clockwiseHeader = header;
+        void setControl(int cc) {
+            this->control = cc;
         }
 
-        void setActionCounterClockwise(String header, int value) {
-            counterClockwiseValue = value;
-            counterClockwiseHeader = header;
+        void reverseDir() {
+            reversed = true;
         }
 
         void check() {
@@ -29,12 +30,12 @@ class Encoder {
                 if (digitalRead(dataPin) == 1) {
                     counter++;
                     if(counter % 2 == 0) {
-                        SerialCommunication::sendCommand(counterClockwiseHeader, counterClockwiseValue);
+                        midi_controller_change(0, control, reversed ? VELOCITY_BACKWARD : VELOCITY_FORWARD);
                     }
                 } else {
                     counter--;
                     if(counter % 2 == 0) {
-                        SerialCommunication::sendCommand(clockwiseHeader, clockwiseValue);
+                         midi_controller_change(0, control, reversed ? VELOCITY_FORWARD : VELOCITY_BACKWARD);
                     }
                 }
             }
@@ -48,9 +49,6 @@ class Encoder {
         int dataLastState;
         int clockLastState;
         int counter = 1;
-
-        int clockwiseValue;
-        int counterClockwiseValue;
-        String clockwiseHeader;
-        String counterClockwiseHeader;
+        int control;
+        bool reversed;
 };

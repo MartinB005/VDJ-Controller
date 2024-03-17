@@ -1,5 +1,6 @@
 
 #include <Arduino.h>
+#include "ardumidi/ardumidi.h"
 #include <Encoder.h>
 #include <Button.h>
 #include <Potentiometer.h>
@@ -48,12 +49,12 @@ ShiftRegister shiftRegister;
 
 ButtonMatrix buttonMatrix;
 
-bool* add;
-void setup() {
+bool *add;
+void setup()
+{
 
   Serial.begin(115200);
 
-  
   shiftRegister.connect(DATA_PIN, CLK_PIN, LATCH_PIN);
 
   connectPlates();
@@ -62,110 +63,86 @@ void setup() {
   connectSinglePotentiometers();
   connectPotentiometerArray();
 
+
   potentiometers.setIdleFunction(checkEncoders);
   buttonMatrix.setIdleFunction(checkEncoders);
 }
 
-void loop() {
+void loop()
+{
   checkAll();
   checkEncoders();
 
   delay(1);
 }
 
-void connectPlates() {
+void connectPlates()
+{
 
   leftVinyl.connect(LEFT_VINYL_CLK, LEFT_VINYL_DT);
-
-  leftVinyl.setActionClockwise("jogwheel left", FOWARD);
-  leftVinyl.setActionCounterClockwise("jogwheel left", BACKWARD);
+  leftVinyl.reverseDir();
+  leftVinyl.setControl(0x25);
 
   rightVinyl.connect(RIGHT_VINYL_CLK, RIGHT_VINYL_DT);
-
-  rightVinyl.setActionClockwise("jogwheel right", FOWARD);
-  rightVinyl.setActionCounterClockwise("jogwheel right", BACKWARD);
-
+  rightVinyl.setControl(0x26);
 }
 
-void connectSliders() {
+void connectSliders()
+{
 
   volumeLeft.connect(A1);
-  volumeLeft.setSerialHeader("lvl_L");
   volumeLeft.isLogarithmic = true;
-  
+  volumeLeft.setControllerChange(0xE);
+
   volumeRight.connect(A2);
-  volumeRight.setSerialHeader("lvl_R");
   volumeRight.isLogarithmic = true;
+  volumeRight.setControllerChange(0xF);
 
   crossfader.connect(A0);
-  crossfader.setSerialHeader("cfdr");
   crossfader.isSwapped = true;
   crossfader.isLogarithmic = true;
   crossfader.reverseLogarithmic = true;
-
+  crossfader.setControllerChange(0x10);
 }
 
-void connectSinglePotentiometers() {
+void connectSinglePotentiometers()
+{
 
   eqEffectLeft.connect(A7);
   eqEffectLeft.isSwapped = true;
-  eqEffectLeft.setSerialHeader("eq1_L");
-  
+  eqEffectLeft.setControllerChange(0x11);
+
   eqEffectRight.connect(A6);
-  eqEffectRight.setSerialHeader("eq1_R");
+  eqEffectRight.setControllerChange(0x14);
 
   leftEffect.connect(A4);
-  leftEffect.setSerialHeader("eff_slider_L");
-  leftEffect.watchCondition(buttonMatrix.getButtonAddress("L_EFFECT"), "eff_select_L");
-  leftEffect.blockOnRelease(buttonMatrix.getBlockControl());
-  leftEffect.setFirstChangeHeader("selection_L");
-
+  leftEffect.setControllerChange(0x17);
   rightEffect.connect(A3);
   rightEffect.isSwapped = true;
-  rightEffect.setSerialHeader("eff_slider_R");
-  rightEffect.watchCondition(buttonMatrix.getButtonAddress("R_EFFECT"), "eff_select_R");
-  rightEffect.blockOnRelease(buttonMatrix.getBlockControl());
-  rightEffect.setFirstChangeHeader("selection_R");
+  rightEffect.setControllerChange(0x18);
 }
 
-void connectPotentiometerArray() {
-  
+void connectPotentiometerArray()
+{
+
   potentiometers.setMainConnection(A5, shiftRegister);
 
-  potentiometers.connectPotenitometer(4, "eq2_L", true);
-  potentiometers.connectPotenitometer(5, "eq2_R", false);
-  potentiometers.connectPotenitometer(6, "eq3_L", true);
-  potentiometers.connectPotenitometer(7, "eq3_R", false);
-  
+  potentiometers.connectPotenitometer(4, 0x12, true);
+  potentiometers.connectPotenitometer(5, 0x15, false);
+  potentiometers.connectPotenitometer(6, 0x13, true);
+  potentiometers.connectPotenitometer(7, 0x16, false);
 }
 
-void initButtons() {
-  int rowPins[] = {2, 3, 8, 9};
+void initButtons()
+{
+  int rowPins[] = {2, 3, 9, 8};
   int columnPins[] = {1, 3, 0, 2};
 
-  buttonMatrix.connect(shiftRegister, columnPins, rowPins);
-  buttonMatrix.setButtonHeader(0, 0, "L_PAD 1", SEND_ON_KEYDOWN);
-  buttonMatrix.setButtonHeader(1, 0, "L_PAD 2", SEND_ON_KEYDOWN);
-  buttonMatrix.setButtonHeader(2, 0, "L_PAD 3", SEND_ON_KEYDOWN);
-  buttonMatrix.setButtonHeader(3, 0, "L_PAD 4", SEND_ON_KEYDOWN);
-
-  buttonMatrix.setButtonHeader(0, 1, "L_SYNC", SEND_ON_KEYDOWN);
-  buttonMatrix.setButtonHeader(1, 1, "L_CUE", SEND_ON_KEYDOWN);
-  buttonMatrix.setButtonHeader(2, 1, "L_EFFECT", SEND_ON_KEYUP);
-  buttonMatrix.setButtonHeader(3, 1, "L_PLAY", SEND_ON_KEYDOWN);
-
-  buttonMatrix.setButtonHeader(0, 2, "R_PAD 1", SEND_ON_KEYDOWN);
-  buttonMatrix.setButtonHeader(1, 2, "R_PAD 2", SEND_ON_KEYDOWN);
-  buttonMatrix.setButtonHeader(2, 2, "R_PAD 3", SEND_ON_KEYDOWN);
-  buttonMatrix.setButtonHeader(3, 2, "R_PAD 4", SEND_ON_KEYDOWN);
-
-  buttonMatrix.setButtonHeader(0, 3, "R_EFFECT", SEND_ON_KEYUP);
-  buttonMatrix.setButtonHeader(1, 3, "R_SYNC", SEND_ON_KEYDOWN);
-  buttonMatrix.setButtonHeader(2, 3, "R_CUE", SEND_ON_KEYDOWN);
-  buttonMatrix.setButtonHeader(3, 3, "R_PLAY", SEND_ON_KEYDOWN);
+  buttonMatrix.init(shiftRegister, columnPins, rowPins);
 }
 
-void checkAll() {
+void checkAll()
+{
 
   volumeLeft.check();
   volumeRight.check();
@@ -176,17 +153,13 @@ void checkAll() {
 
   leftEffect.check();
   rightEffect.check();
-  //potentiometers.check();
+  potentiometers.check();
   buttonMatrix.check();
-
 }
 
-void checkEncoders() {
+void checkEncoders()
+{
 
   leftVinyl.check();
   rightVinyl.check();
-
 }
-
-
-

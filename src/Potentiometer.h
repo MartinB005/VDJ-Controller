@@ -1,7 +1,9 @@
 #include <Arduino.h>
 #include <SerialCommunication.h>
+#include "ardumidi/ardumidi.h"
 
 #define MAX_VALUE 1023
+#define MIDI_CHANNEL 0
 
 class Potentiometer {
 
@@ -16,17 +18,8 @@ class Potentiometer {
             input_pin = pin;
         }
 
-        void setSerialHeader(String header) {
-            this->header = header;
-        }
-
-        void setFirstChangeHeader(String header) {
-            this->firstHeader = header;
-        }
-
-        void watchCondition(bool *addr, String redudantHeader) {
-            this->condition = addr;
-            this->redudantHeader = redudantHeader;
+        void setControllerChange(int cc) {
+            this->cc = cc;
         }
 
         void blockOnRelease(bool* addr) {
@@ -42,13 +35,8 @@ class Potentiometer {
                     normalized = pow(normalized, 3) / MAX_VALUE / MAX_VALUE;
                 }
 
-                String resultHeader = condition != NULL && (*condition) ? redudantHeader : header;
-                
-                SerialCommunication::sendCommand(resultHeader, normalized);
-
-                if(!*block) {
-                    SerialCommunication::sendCommand(firstHeader, 1);
-                }
+                int velocity = map(normalized, 0, 1023, 0, 127);
+                midi_controller_change(MIDI_CHANNEL, cc, velocity);
 
                 *block = true;
                 lastState = value;
@@ -58,9 +46,7 @@ class Potentiometer {
     private:
         int input_pin;
         int lastState;
-        String header;
-        String redudantHeader;
-        String firstHeader;
+        int cc;
         bool *condition = NULL;
         bool *block;
 };

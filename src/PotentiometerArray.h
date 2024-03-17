@@ -17,7 +17,7 @@ class PotentiometerArray {
             this->shiftRegister = shiftRegister;
         }
 
-        void connectPotenitometer(int vccPin, String serialHeader, boolean swap) {
+        void connectPotenitometer(int vccPin, int cc, boolean swap) {
             shiftRegister.write(vccPin, LOW);
 
             outPins[count] = vccPin;
@@ -25,7 +25,7 @@ class PotentiometerArray {
 
             lastValues[count] = 0;
 
-            headers[count] = serialHeader;
+            controls[count] = cc;
             count++;
         }
 
@@ -43,7 +43,7 @@ class PotentiometerArray {
                 
                 int millisValue = millis();
                 while(millis() - millisValue < 20) {
-                    func();
+                    //func();
                 }
 
                 readData(outPin, i);
@@ -53,7 +53,7 @@ class PotentiometerArray {
     private:
 
         ShiftRegister shiftRegister;
-        String headers[COUNT];
+        int controls[COUNT];
         int outPins[COUNT];
         int lastValues[COUNT];
         int universalPin;
@@ -74,7 +74,8 @@ class PotentiometerArray {
                 }
 
                 if(abs(lastValues[which] - value) > 5) {
-                    SerialCommunication::sendCommand(headers[which], value);
+                    int velocity = map(value, 0, MAX_VALUE, 0, 127);
+                    midi_controller_change(MIDI_CHANNEL, controls[which], velocity);
                     lastValues[which] = value;
                 }
 
