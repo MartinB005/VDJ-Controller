@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper device="Light Controller" version="850" date="2024-03-31">
+	<map value="FX 02" action="debug &quot;test&quot; " />
+	<map value="FX 03" action="debug &quot;test&quot;" />
+	<map value="FX 01" action="sampler_pad 2" />
+	<map value="Pot 01" action="filter" />
+	<map value="Volume LEFT" action="deck left level" />
+	<map value="Volume RIGHT" action="deck right level" />
+	<map value="CROSSFADER" action="crossfader
+" />
+	<map value="EQ LEFT HIGH" action="deck left eq_high" />
+	<map value="EQ RIGHT HIGH" action="deck right eq_high" />
+	<map value="EFFECT LEFT" action="deck left effect_active" />
+	<map value="EFFECT RIGHT" action="deck right effect_active" />
+	<map value="CUE LEFT" action="deck left cue_button" />
+	<map value="CUE RIGHT" action="deck right cue_button" />
+	<map value="EFFECT SLIDER LEFT" action="deck left effect_slider 1" />
+	<map value="EFFECT SLIDER RIGHT" action="deck right effect_slider 1" />
+	<map value="PLAY RIGHT" action="deck right play_button" />
+	<map value="PLAY LEFT" action="deck left play_button" />
+	<map value="SYNC LEFT" action="deck left sync" />
+	<map value="SYNC RIGHT" action="deck right sync" />
+	<map value="PAD 1 LEFT" action="deck left pad 1" />
+	<map value="PAD 2 LEFT" action="deck left pad 2" />
+	<map value="PAD 3 LEFT" action="deck left pad 3" />
+	<map value="PAD 4 RIGHT" action="deck right pad 4" />
+	<map value="PAD 4 LEFT" action="deck left pad 4" />
+	<map value="PAD 1 RIGHT" action="deck right pad 1" />
+	<map value="PAD 2 RIGHT" action="deck right pad 2" />
+	<map value="PAD 3 RIGHT" action="deck right pad 3" />
+	<map value="EQ LEFT MID" action="deck left eq_mid" />
+	<map value="EQ RIGHT LOW" action="deck right eq_low" />
+	<map value="EQ RIGHT MID" action="deck right eq_mid" />
+	<map value="EQ LEFT LOW" action="deck left eq_low" />
+	<map value="JOG LEFT" action="deck left touchwheel" />
+	<map value="JOG RIGHT" action="deck right touchwheel" />
+	<map value="BEAT 2" action="get_beat_num 2 ? on : off" />
+	<map value="BEAT 1" action="get_beat_num 1 ? on : off" />
+	<map value="BEAT 3" action="get_beat_num 3 ? on : off" />
+	<map value="BEAT 4" action="get_beat_num 4 ? on : off" />
+</mapper>
