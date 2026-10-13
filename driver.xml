@@ -1,0 +1,58 @@
+<device name="My DIY Controller" author="MB" description="My DIY Controller" version="800" type="MIDI" singledeck="yes" motor="no" decks="1" drivername="My DIY Controller" vid="0x16C0" pid="0x0485">
+<!-   Pushbuttons   ->
+<button note="0x15" name="CUE LEFT" channel="1"/>
+<button note="0x16" name="PLAY LEFT" channel="1"/>
+<button note="0x17" name="SYNC LEFT" channel="1"/>
+
+<button note="0x18" name="CUE RIGHT" channel="1"/>
+<button note="0x19" name="PLAY RIGHT" channel="1"/>
+<button note="0x1A" name="SYNC RIGHT" channel="1"/>
+
+<button note="0x1B" name="EFFECT LEFT" channel="1"/>
+<button note="0x1C" name="EFFECT RIGHT" channel="1"/>
+
+<button note="0x1D" name="PAD 1 LEFT" channel="1"/>
+<button note="0x1E" name="PAD 2 LEFT" channel="1"/>
+<button note="0x1F" name="PAD 3 LEFT" channel="1"/>
+<button note="0x20" name="PAD 4 LEFT" channel="1"/>
+
+<button note="0x21" name="PAD 1 RIGHT" channel="1"/>
+<button note="0x22" name="PAD 2 RIGHT" channel="1"/>
+<button note="0x23" name="PAD 3 RIGHT" channel="1"/>
+<button note="0x24" name="PAD 4 RIGHT" channel="1"/>
+
+<jog cc="0x25" zero="0x40" full="512" name="JOG LEFT" deck="1" />
+<jog cc="0x26" zero="0x40" full="512" name="JOG RIGHT" deck="2" />
+
+<!-   Pots   ->
+<slider cc="0xE" name="Volume LEFT" />
+<slider cc="0xF" name="Volume RIGHT" />
+<slider cc="0x10" name="CROSSFADER" />
+
+<slider cc="0x11" name="EQ LEFT HIGH" />
+<slider cc="0x12" name="EQ LEFT MID" />
+<slider cc="0x13" name="EQ LEFT LOW" />
+
+<slider cc="0x14" name="EQ RIGHT HIGH" />
+<slider cc="0x15" name="EQ RIGHT MID" />
+<slider cc="0x16" name="EQ RIGHT LOW" />
+
+<slider cc="0x17" name="EFFECT SLIDER LEFT" />
+<slider cc="0x18" name="EFFECT SLIDER RIGHT" />
+<!-   LEDs Red   ->
+<led note="0x00" name="BEAT 1" channel="0" />
+<led note="0x01" name="BEAT 2" channel="0" />
+<led note="0x02" name="BEAT 3" channel="0" />
+<led note="0x03" name="BEAT 4" channel="0" />
+<!-   LEDs Green   ->
+<led note="0x10" name="LED G1" channel="0" />
+<led note="0x11" name="LED G2" channel="0" />
+<led note="0x12" name="LED G3" channel="0" />
+<!-   LEDs Blue   ->
+<led note="0x20" name="LED B1" channel="0" />
+<led note="0x21" name="LED B2" channel="0" />
+<led note="0x22" name="LED B3" channel="0" />
+
+<bar note="0x0E" nb="4" name="BAR_LOOPS_REV" channel="0" deck="1" inverted="true"/>
+
+</device>
